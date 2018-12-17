@@ -1,2 +1,3 @@
 print("hello world")
-print("2的10次方等于"+2××10)
+print("2的10次方为%d" % (2**10))
+
