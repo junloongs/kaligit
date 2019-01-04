@@ -268,7 +268,196 @@ kw = {'d': 88, 'x': '#'}
 f2(*args, **kw)#-->a = 1 b = 2 c = 3 d = 88 kw = {'x': '#'}
 #所以，对于任意函数，都可以通过类似func(*args, **kw)的形式调用它，无论它的参数是如何定义的。
 #!! 虽然可以组合多达5种参数，但不要同时使用太多的组合，否则函数接口的可理解性很差。
+#练习题:以下函数允许计算两个数的乘积，请稍加改造，变成可接收一个或多个数并计算乘积：
+def product(x, y = 1, *nums):
+    for i in nums:
+        y *= i
+    return x*y
+print('product(5) =', product(5))
+print('product(5, 6) =', product(5, 6))
+print('product(5, 6, 7) =', product(5, 6, 7))
+print('product(5, 6, 7, 9) =', product(5, 6, 7, 9))
+if product(5) != 5:
+    print('测试失败!')
+elif product(5, 6) != 30:
+    print('测试失败!')
+elif product(5, 6, 7) != 210:
+    print('测试失败!')
+elif product(5, 6, 7, 9) != 1890:
+    print('测试失败!')
+else:
+    try:
+        product()
+        print('测试失败!')
+    except TypeError:
+        print('测试成功!')
+#递归函数：在函数内部，可以调用其他函数。如果一个函数在内部调用自身本身，这个函数就是递归函数。
+def fact(n): #计算n的阶乘
+    if n==1:
+        return 1
+    return n * fact(n - 1)
+print(fact(5))#-->120
+'''
+===> fact(5)
+===> 5 * fact(4)
+===> 5 * (4 * fact(3))
+===> 5 * (4 * (3 * fact(2)))
+===> 5 * (4 * (3 * (2 * fact(1))))
+===> 5 * (4 * (3 * (2 * 1)))
+===> 5 * (4 * (3 * 2))
+===> 5 * (4 * 6)
+===> 5 * 24
+===> 120
+'''
+#递归函数的优点是定义简单，逻辑清晰。理论上，所有的递归函数都可以写成循环的方式，但循环的逻辑不如递归清晰。
+#使用递归函数需要注意防止栈溢出。在计算机中，函数调用是通过栈（stack）这种数据结构实现的，每当进入一个函数调用，栈就会加一层栈帧，
+#每当函数返回，栈就会减一层栈帧。由于栈的大小不是无限的，所以，递归调用的次数过多，会导致栈溢出。如：fact(1000)
+'''
+解决递归调用栈溢出的方法是通过尾递归优化，事实上尾递归和循环的效果是一样的，所以，把循环看成是一种特殊的尾递归函数也是可以的。
 
+尾递归是指，在函数返回的时候，调用自身本身，并且，return语句不能包含表达式。这样，编译器或者解释器就可以把尾递归做优化，使递归本身无论调用多少次，都只占用一个栈帧，不会出现栈溢出的情况。
+
+上面的fact(n)函数由于return n * fact(n - 1)引入了乘法表达式，所以就不是尾递归了。要改成尾递归方式，需要多一点代码，主要是要把每一步的乘积传入到递归函数中：
+'''
+def fact(n):
+    return fact_iter(n, 1)
+
+def fact_iter(num, product):
+    if num == 1:
+        return product
+    return fact_iter(num - 1, num * product)
+'''
+===> fact_iter(5, 1)
+===> fact_iter(4, 5)
+===> fact_iter(3, 20)
+===> fact_iter(2, 60)
+===> fact_iter(1, 120)
+===> 120
+'''
+#练习题：汉诺塔实现，请编写move(n, a, b, c)函数，它接收参数n，表示3个柱子A、B、C中第1个柱子A的盘子数量，然后打印出把所有盘子从A借助B移动到C的方法。
+def move(n, a='A', b='B', c='C'):
+    if n == 1:
+        print(a, '-->', c)
+    else:
+        move((n-1),a,c,b)
+        print(a, '-->', c)
+        move((n-1),b,a,c)
+move(3)
+#A --> C
+#A --> B
+#C --> B
+#A --> C
+#B --> A
+#B --> C
+#A --> C
+##切片：取一个list或tuple的部分元素是非常常见的操作[:::]
+List1 = list(range(100))
+print(List1)#输出List1
+print(List1[:10])#输出前十个元素
+print(List1[-10:])#后十个
+print(List1[10:20])#前11-20个数
+print(List1[:10:2])#前10个数，每两个取一个
+print(List1[::5])#所有数，每5个取一个
+print(List1[:])#原样复制一个list
+print((0, 1, 2, 3, 4, 5)[:3])#tuple一样-->(0, 1, 2)
+print("ABCDEFGHIJKLMN"[2:8:2])#字符串也可以-->CEG
+#练习题：实现一个trim()函数，去除字符串首尾的空格，注意不要调用str的strip()方法：
+def trim(s):
+    while s[-1:] ==' ':#循环判断结尾是否为空格
+    	s=s[:-1]	   #舍去空格，重新赋值给s
+    	#continue	   #继续，也可以替换成trim(s)或者直接省略
+    while s[:1] ==' ': #循环判断开头是否为空格
+    	s=s[1:]		   #舍去空格，重新赋值给s
+    	#continue	   #继续，也可以替换成trim(s)或者直接省略
+    return s
+ #测试   
+if trim('hello  ') != 'hello':
+    print('测试失败!')
+elif trim('  hello') != 'hello':
+    print('测试失败!')
+elif trim('  hello  ') != 'hello':
+    print('测试失败!')
+elif trim('  hello  world  ') != 'hello  world':
+    print('测试失败!')
+elif trim('') != '':
+    print('测试失败!')
+elif trim('    ') != '':
+    print('测试失败!')
+else:
+    print('测试成功!')
+##迭代：如果给定一个list或tuple，我们可以通过for循环来遍历这个list或tuple，这种遍历我们称为迭代（Iteration）
+#python中list,tuple,str，dict都是可迭代的，用for……in……完成：
+for c in 'ABCDEF':
+	print(c)
+d = {'a': 1, 'b': 2, 'c': 3}
+for key in d:
+	print(key)#-->a\n  b\n  c\n
+#默认情况下，dict迭代的是key。如果要迭代value，可以用for value in d.values()，如果要同时迭代key和value，可以用for k, v in d.items()。
+#通过collections模块的Iterable类型可判断一个对象是否可迭代：
+from collections import Iterable
+print(isinstance('abc', Iterable))#-->True
+print(isinstance([1,2,3], Iterable))#-->True
+print(isinstance(123,Iterable))#-->False
+#如果要对list实现类似Java那样的下标循环怎么办？Python内置的enumerate函数可以把一个list变成索引-元素对，这样就可以在for循环中同时迭代索引和元素本身：
+for i, value in enumerate(['A','B','C']):
+	print(i, value)#-->输出类似dict的索引值对
+#练习题：请使用迭代查找一个list中最小和最大值，并返回一个tuple：
+def findMinAndMax(L):
+	if L == []:
+		return(None,None)
+	x = y = L[0]
+	for i in L:
+		if i < x:
+			x = i
+		if i > y:
+			y = i
+	return (x,y)
+# 测试
+if findMinAndMax([]) != (None, None):
+    print('测试失败!')
+elif findMinAndMax([7]) != (7, 7):
+    print('测试失败!')
+elif findMinAndMax([7, 1]) != (1, 7):
+    print('测试失败!')
+elif findMinAndMax([7, 1, 3, 9, 5]) != (1, 9):
+    print('测试失败!')
+else:
+    print('测试成功!')
+##列表生成式：列表生成式即List Comprehensions，是Python内置的非常简单却强大的可以用来创建list的生成式。
+print(list(range(1,11)))#-->要生成list [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]可以用list(range(1, 11))
+print([x * x for x in range(1, 11)])#-->[1, 4, 9, 16, 25, 36, 49, 64, 81, 100]#生成[1x1, 2x2, 3x3, ..., 10x10]
+print([m + n for m in 'ABC' for n in 'ABC'])#-->['AA', 'AB', 'AC', 'BA', 'BB', 'BC', 'CA', 'CB', 'CC']#还可以使用两层循环，可以生成全排列.
+#生成字典
+import string	
+a = list(range(0,10))
+A = []
+for xin in a:
+	A.append(str(xin))
+b = list(string.ascii_lowercase)
+c = list(string.ascii_uppercase)
+#d = list(string.ascii_letters)#大写加小写
+#print([m + n + k for m in A for n in b for k in c])#生成3个字符组成的全排列列表。
+#运用列表生成式，可以写出非常简洁的代码。例如，列出当前目录下的所有文件和目录名，可以通过一行代码实现：
+import os # 导入os模块，模块的概念后面讲到
+print([d for d in os.listdir('.')])# os.listdir可以列出文件和目录
+#for循环其实可以同时使用两个甚至多个变量，比如dict的items()可以同时迭代key和value,因此，列表生成式也可以使用两个变量来生成list：
+d = {'x': 'A', 'y': 'B', 'z': 'C' }
+List2 = [k + '=' + v for k, v in d.items()]
+print(List2)#-->['y=B', 'x=A', 'z=C']
+print([s.lower() for s in List2])#-->['x=a', 'y=b', 'z=c']
+L1 = ['Hello', 'World', 18, 'Apple', None]
+#L2 = []
+# for s in L1:
+# 	if isinstance(s,str) == True:
+# 		s=s.lower()
+# 		L2.append(s)
+L2 = [s.lower() for s in L1 if isinstance(s, str)]
+# 测试:
+print(L2)
+if L2 == ['hello', 'world', 'apple']:
+    print('测试通过!')
+else:
+    print('测试失败!')
 
 
 
