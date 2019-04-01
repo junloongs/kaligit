@@ -27,13 +27,16 @@ class MainForm(QMainWindow, Ui_MainWindow):
             self.statusbar.showMessage(directory1)
         else:
             self.statusbar.showMessage("软件已过期，请与作者联系！", 10000)
+
+
     def getxml(self):
         try:
+
             work_dir = directory1
             w_dir = ''.join(list(directory1)[0:2])
             with open(w_dir+'/xml_result.csv', 'a', newline='') as f1:
                 writer = csv.writer(f1)
-                writer.writerow(("MR任务名称", "EnodeB名称", "EnodeBID", "最大UE数"))
+                writer.writerow(("MR任务名称", "EnodeB名称", "EnodeBID", "productSpec", "最大UE数","cellID"))
             for parent, dirnames, filenames in os.walk(work_dir, followlinks=True):
                 for filename in filenames:
                     filetype = os.path.splitext(filename)
@@ -49,14 +52,22 @@ class MainForm(QMainWindow, Ui_MainWindow):
                             for enb in enodeBs:
                                 MR_name = root.getAttribute('name')
                                 enbname = enb.getAttribute('managedElementType')
+                                meid=enb.getAttribute('sdrMeID')
                                 ueMaxNum = root.getElementsByTagName('ueMaxNum')[0]
-                                enbids = enb.getElementsByTagName('EnodeBID')[0]
+                                #enbids = enb.getElementsByTagName('EnodeBID')
+
+                                #enb1 = enbids[0].getAttribute('eNodeBId')
                                 ueMaxNum_data = ueMaxNum.childNodes[0]
-                                enbid = enbids.getAttribute('eNodeBId')
+                                #enbids = enb.getElementsByTagName('EnodeBID')
+
+                                cellss = enb.getElementsByTagName('cell')
+                                for cell in cellss:
+                                    mycell = cell.getAttribute('cellID')
+                                    MyproductSpec = cell.getAttribute('productSpec')
                                 #print(MR_name, enbname, enbid, ueMaxNum_data.data)
-                                with open(w_dir+'/xml_result.csv', 'a', newline='') as f:
-                                    writer = csv.writer(f)
-                                    writer.writerow((MR_name, enbname, enbid, ueMaxNum_data.data))
+                                    with open(w_dir+'/xml_result.csv', 'a', newline='') as f:
+                                        writer = csv.writer(f)
+                                        writer.writerow((MR_name, enbname, meid, MyproductSpec, ueMaxNum_data.data,mycell))
                         fh.close()
                         # 在状态栏显示文件地址
             self.statusbar.showMessage("结果保存在："+w_dir+"/xml_result.csv")
