@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # _*_coding:utf-8 _*_
 import os,sys
+import chardet
 # import glob,csv
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QFileDialog
 from testcsv import Ui_MainWindow
@@ -14,6 +15,7 @@ class MainForm(QMainWindow, Ui_MainWindow):
         self.setupUi(self)
         self.pushButton.clicked.connect(self.openFiles)
         self.pushButton_2.clicked.connect(self.getcsv)
+
         # 菜单的点击事件，当点击关闭菜单时连接槽函数 close()
         #self.fileCloseAction.triggered.connect(self.close)
         # 菜单的点击事件，当点击打开菜单时连接槽函数 openMsg()
@@ -42,6 +44,10 @@ class MainForm(QMainWindow, Ui_MainWindow):
         all_files= files
 
         self.statusbar.showMessage(all_files[0])
+    def get_encoding(file):
+        # 二进制方式读取，获取字节数据，检测类型
+        with open(file, 'rb') as f:
+            return chardet.detect(f.read())['encoding']
     def getcsv(self):
         global all_files
         try:
@@ -52,30 +58,32 @@ class MainForm(QMainWindow, Ui_MainWindow):
             #all_files = glob.glob(os.path.join(input_path, '*.csv'))
             all_data_frame = []
             for file in all_files:
+                with open(file, 'rb') as f:
+                    encoding1 = chardet.detect(f.read())['encoding']
                 filetype = os.path.splitext(file)
                 filename, type = filetype
 
                 if type =='.csv':
                     try:
-                        data_frame = pd.read_csv(file, encoding='gbk')
+                        data_frame = pd.read_csv(file, encoding=encoding1)
                     except Exception as err:
-                        pass
-                    try:
-                         data_frame = pd.read_csv(file, encoding='utf_8_sig')
-                    except Exception as err:
-                        pass
+                        self.statusbar.showMessage(err)
+                    # try:
+                    #      data_frame = pd.read_csv(file, encoding='utf_8_sig')
+                    # except Exception as err:
+                    #     self.statusbar.showMessage(err)
                 elif type =='.xlsx':
                     try:
                         data_frame = pd.read_excel(file)
 
                     except Exception as err:
-                        pass
+                        self.statusbar.showMessage(err)
                 elif type == '.xls':
                     try:
                         data_frame = pd.read_excel(file)
 
                     except Exception as err:
-                        pass
+                        self.statusbar.showMessage(err)
                 else:
                     self.statusbar.showMessage("请选择表格文件")
                     return
@@ -86,10 +94,11 @@ class MainForm(QMainWindow, Ui_MainWindow):
                 all_data_frame.append(data_frame)
             # pandas.concat()函数将数据框数据垂直堆叠(axis=0), 当水平连接数据时(asis=1)
             data_frame_concat = pd.concat(all_data_frame, axis=0, ignore_index=True)
-            data_frame_concat.to_csv(output_file,encoding='utf_8_sig', index=False)
+            data_frame_concat.to_csv(output_file,encoding=encoding1, index=False)
             self.statusbar.showMessage("结果保存在：" + w_dir + "/csv_result.csv")
         except Exception as err:
-            self.statusbar.showMessage("请选择表格文件")
+            print(err)
+            self.statusbar.showMessage("请选择表格文件:")
             return
     def getxls(self):
         global all_files
@@ -97,18 +106,22 @@ class MainForm(QMainWindow, Ui_MainWindow):
         output_file = w_dir + '/csv_result.csv'
         all_data_frame = []
         for file in all_files:
-         try:
-             data_frame = pd.read_xlsx(file, encoding='gbk')
-         except Exception as err:
-             pass
-         try:
-             data_frame = pd.read_xlsx(file, encoding='utf_8_sig')
-         except Exception as err:
-             pass
-         all_data_frame.append(data_frame)
+            with open(file, 'rb') as f:
+                encoding1 = chardet.detect(f.read())['encoding']
+            try:
+                data_frame = pd.read_xlsx(file, encoding=encoding1)
+            except Exception as err:
+                pass
+         # try:
+         #     data_frame = pd.read_xlsx(file, encoding='utf_8_sig')
+         # except Exception as err:
+         #     pass
+        all_data_frame.append(data_frame)
         # pandas.concat()函数将数据框数据垂直堆叠(axis=0), 当水平连接数据时(asis=1)
         data_frame_concat = pd.concat(all_data_frame, axis=0, ignore_index=True)
-        data_frame_concat.to_csv(output_file, encoding='utf_8_sig', index=False)
+        
+
+        data_frame_concat.to_csv(output_file, encoding=encoding1, index=False)
         self.statusbar.showMessage("结果保存在：" + w_dir + "/csv_result.csv")
 if __name__ == "__main__":
     app = QApplication(sys.argv)
