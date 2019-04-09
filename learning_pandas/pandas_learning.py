@@ -4,6 +4,7 @@ import pandas as pd
 import datetime
 import numpy as np
 from pandas import DataFrame,Series
+import chardet
 df= pd.read_csv('E:\\nbiot.csv', encoding='gbk',header=5)#索引第5行为表头。
 df["地市"]=df.网元名称.apply(lambda x:x[:2])#以网元名称列为基准，创建新的列“地市”。
 print(df.head(5))#输出前5行。
@@ -106,6 +107,24 @@ print(df.head(5))
 grp=df.groupby([df.日期,df.网元名称])[['QPSK调制方式的上行达到最大重传次数之后的仍然传输失败的TB数 (无)','16QAM调制方式的上行达到最大重传次数之后的仍然传输失败的TB数 (无)']].sum()
 #grp.to_csv("E:\\1.csv",encoding='utf_8_sig')
 print(grp)
+#数据差集计算
+MyFile=(r"D:\kaligit\learning_pandas\test1.csv")
+with open(MyFile, 'rb') as f:
+    MyFileCode = chardet.detect(f.read())['encoding']
+df= pd.read_csv(MyFile, encoding=MyFileCode,header=0,dtype={"本端基站ID":str,"对端基站ID":str})#索引第1行为表头。
+#print(df.head(5))
+df.fillna(value="-",inplace=True)
+new_df1=df["本端基站ID"]+";"+df["对端基站ID"]
+new_df2=df["对端基站ID"]+";"+df["本端基站ID"]
+c=new_df1.append(new_df2)
+c.drop_duplicates(keep=False,inplace=True)
+#这里想要说明的是，drop_duplicates当中的参数keep=False，意为重复项全部删除，它还有keep="first"与keep="last"，
+# 分别对应在有多项重复时，保留第一项（或最后一项）。
+c.reset_index(drop=True)
+#不想保留原来的index，直接使用重置后的索引，那么可以使用参数drop=True，默认值是False
+c.name="单向对"
+#对DataFrame列的重命名d.columns=['a','b','C'];或者d.rename({'a':'A', 'b':'B'},inplace=True)。Series用s.name="newname";或者s.rename("newname1",inplace=True)。
+c.to_csv("E:\\2.csv",encoding='utf_8_sig',index=False,header=True)
 
 
 
